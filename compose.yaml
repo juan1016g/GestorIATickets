@@ -1,9 +1,21 @@
 services:
   postgres:
     image: 'postgres:latest'
+    restart: unless-stopped
     environment:
-      - 'POSTGRES_DB=mydatabase'
-      - 'POSTGRES_PASSWORD=secret'
-      - 'POSTGRES_USER=myuser'
+      POSTGRES_DB: tickets_db
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: admin
+      PGDATA: /data/postgres
     ports:
-      - '5432'
+      - '5432:5432'
+    volumes:
+      - pgdata:/data/postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U root -d tickets_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

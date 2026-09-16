@@ -1,0 +1,28 @@
+server:
+  port: 8090
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tickets_db
+    username: root
+    password: admin
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+langchain4j:
+  google-ai-gemini:
+    chat-model:
+      api-key: ${AI_API_KEY}
+      log-requests-and-responses: true
+
+logging:
+  level:
+    dev.langchain4j: DEBUG

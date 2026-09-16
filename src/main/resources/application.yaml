@@ -1,3 +1,16 @@
 spring:
   application:
-    name: tickets
+    name: GestorIaTickets
+  profiles:
+    active: dev
+  datasource:
+    driver-class-name: org.postgresql.Driver
+
+server:
+  servlet:
+    context-path: /api
+
+langchain4j:
+  google-ai-gemini:
+    chat-model:
+      model-name: gemini-2.5-flash

@@ -22,10 +22,14 @@ public class TicketServiceImpl implements TicketService {
     @Override
     public TicketDto createTicket(TicketDto ticketDto) {
         UserDto requester = userRepository.findById(ticketDto.getRequester().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario solicitante no encontrado con el ID:" + ticketDto.getRequester().getId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario solicitante no encontrado con el ID: " + ticketDto.getRequester().getId()));
+
+        boolean hasDuplicate = ticketRepository.existsOpenTicket(ticketDto.getTitle(), requester.getId(), TicketStatus.OPEN);
+        if (hasDuplicate) {
+            throw new com.gestoria.tickets.domain.exception.BusinessException("Ya tienes un ticket abierto con este mismo título.");
+        }
 
         ticketDto.setRequester(requester);
-
         ticketDto.setTicketStatus(TicketStatus.OPEN);
         ticketDto.setIsActive(true);
 

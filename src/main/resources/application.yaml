@@ -13,4 +13,5 @@ server:
 langchain4j:
   google-ai-gemini:
     chat-model:
-      model-name: gemini-2.5-flash
+      model-name: gemini-3.1-flash-lite
+      timeout: 15s

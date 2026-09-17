@@ -4,6 +4,7 @@ import com.gestoria.tickets.domain.dto.TicketDto;
 import com.gestoria.tickets.domain.repository.TicketRepository;
 import com.gestoria.tickets.persistence.crud.TicketCrudRepository;
 import com.gestoria.tickets.persistence.entity.TicketEntity;
+import com.gestoria.tickets.persistence.entity.enums.TicketStatus;
 import com.gestoria.tickets.persistence.mapper.TicketMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -38,5 +39,10 @@ public class TicketRepositoryAdapter implements TicketRepository {
     public void delete(Long id) {
         // Pasar a Soft Delete
         crudRepository.deleteById(id);
+    }
+
+    @Override
+    public boolean existsOpenTicket(String title, Long requesterId, TicketStatus status) {
+        return crudRepository.existsByTitleAndRequesterIdAndTicketStatus(title, requesterId, status);
     }
 }

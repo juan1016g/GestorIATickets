@@ -4,8 +4,6 @@ import com.gestoria.tickets.domain.dto.TicketDto;
 import com.gestoria.tickets.domain.dto.UserDto;
 import com.gestoria.tickets.domain.service.TicketService;
 import com.gestoria.tickets.web.dto.request.TicketRequest;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

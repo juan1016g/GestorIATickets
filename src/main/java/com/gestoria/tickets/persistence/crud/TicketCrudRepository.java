@@ -12,8 +12,10 @@ import org.springframework.data.repository.ListPagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 
 public interface TicketCrudRepository extends   JpaRepository<TicketEntity, Long>,
-                                                ListPagingAndSortingRepository<TicketEntity, Long> {
-    boolean existsByTitleAndRequesterIdAndTicketStatus(String title, Long requesterId, TicketStatus ticketStatus);
+        ListPagingAndSortingRepository<TicketEntity, Long> {
+
+    boolean existsByTitleAndRequesterIdAndTicketStatusAndIsActiveTrue(String title, Long requesterId, TicketStatus ticketStatus);
+
     Page<TicketEntity> findByTicketStatus(TicketStatus ticketStatus, Pageable pageable);
 
     @Query("SELECT t FROM TicketEntity t WHERE " +
@@ -27,5 +29,4 @@ public interface TicketCrudRepository extends   JpaRepository<TicketEntity, Long
             @Param("priority") Priority priority,
             @Param("requesterId") Long requesterId,
             Pageable pageable);
-
 }

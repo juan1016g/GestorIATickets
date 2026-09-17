@@ -17,5 +17,23 @@ services:
       timeout: 5s
       retries: 5
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tickets_app
+    ports:
+      - '8090:8090'
+    environment:
+      - PORT=8090
+      - SPRING_PROFILES_ACTIVE=dev
+      - DB_URL=jdbc:postgresql://postgres:5432/tickets_db
+      - DB_USERNAME=root
+      - DB_PASSWORD=admin
+      - AI_API_KEY=${AI_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   pgdata:

@@ -2,6 +2,7 @@ package com.gestoria.tickets.domain.service;
 
 import com.gestoria.tickets.domain.dto.TicketDto;
 import com.gestoria.tickets.domain.dto.UserDto;
+import com.gestoria.tickets.domain.exception.BusinessException;
 import com.gestoria.tickets.domain.exception.ResourceNotFoundException;
 import com.gestoria.tickets.domain.repository.TicketRepository;
 import com.gestoria.tickets.domain.repository.UserRepository;
@@ -32,7 +33,7 @@ public class TicketServiceImpl implements TicketService {
 
         boolean hasDuplicate = ticketRepository.existsOpenTicket(ticketDto.getTitle(), requester.getId(), TicketStatus.OPEN);
         if (hasDuplicate) {
-            throw new com.gestoria.tickets.domain.exception.BusinessException("Ya tienes un ticket abierto con este mismo título.");
+            throw new BusinessException("Ya tienes un ticket abierto con este mismo título.");
         }
 
         ticketDto.setRequester(requester);
@@ -42,13 +43,10 @@ public class TicketServiceImpl implements TicketService {
         TicketDto enrichedTicket;
 
         try {
-            // Intento 1: IA procesa todo
             enrichedTicket = aiAnalyzerService.analyzeAndEnrichTicket(ticketDto);
         } catch (Exception e) {
-            // Intento 2: Fallback por reglas de palabras clave
             enrichedTicket = applyFallbackRules(ticketDto);
         }
-
 
         return ticketRepository.save(enrichedTicket);
     }
@@ -115,8 +113,7 @@ public class TicketServiceImpl implements TicketService {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con el ID: " + technicianId));
 
         if (technician.getRole() == null || !technician.getRole().name().equalsIgnoreCase("SUPPORT")) {
-            throw new com.gestoria.tickets.domain.exception.BusinessException(
-                    "Solo un usuario con rol SOPORTE puede ser asignado como técnico.");
+            throw new BusinessException("Solo un usuario con rol SOPORTE puede ser asignado como técnico.");
         }
 
         ticket.setAssignee(technician);
@@ -131,8 +128,7 @@ public class TicketServiceImpl implements TicketService {
 
         boolean isClosing = (status == TicketStatus.RESOLVED || status == TicketStatus.CLOSED);
         if (isClosing && ticket.getAssignee() == null) {
-            throw new com.gestoria.tickets.domain.exception.BusinessException(
-                    "No se puede resolver o cerrar un ticket que no tiene un técnico asignado.");
+            throw new BusinessException("No se puede resolver o cerrar un ticket que no tiene un técnico asignado.");
         }
 
         ticket.setTicketStatus(status);
@@ -141,8 +137,7 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public void deleteTicket(Long id) {
-        TicketDto ticket = getTicketById(id);
-        ticket.setIsActive(false); // Soft Delete
-        ticketRepository.save(ticket);
+        getTicketById(id);
+        ticketRepository.delete(id);
     }
 }

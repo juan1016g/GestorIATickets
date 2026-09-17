@@ -3,13 +3,14 @@ package com.gestoria.tickets.persistence.entity;
 import com.gestoria.tickets.persistence.audit.AuditTicketListener;
 import com.gestoria.tickets.persistence.audit.AuditableEntity;
 import com.gestoria.tickets.persistence.entity.enums.Category;
-import com.gestoria.tickets.persistence.entity.enums.TicketStatus;
 import com.gestoria.tickets.persistence.entity.enums.Priority;
+import com.gestoria.tickets.persistence.entity.enums.TicketStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.type.SqlTypes;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.io.Serializable;
 import java.util.List;
@@ -22,7 +23,10 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @EntityListeners({AuditTicketListener.class})
+@SQLDelete(sql = "UPDATE tickets SET is_active = false WHERE id = ? AND version = ?")
+@SQLRestriction("is_active = true")
 public class TicketEntity extends AuditableEntity implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -27,6 +27,6 @@ public class UserRequest {
     private String password;
 
     @NotNull(message = "El rol es obligatorio")
-    @Schema(description = "Rol asignado en el sistema", example = "SUPPORT")
+    @Schema(description = "Rol del usuario en la plataforma", allowableValues = {"USER", "SUPPORT"}, example = "SUPPORT")
     private Role role;
 }

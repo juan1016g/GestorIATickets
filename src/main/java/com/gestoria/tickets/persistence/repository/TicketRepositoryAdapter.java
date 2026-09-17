@@ -53,12 +53,11 @@ public class TicketRepositoryAdapter implements TicketRepository {
 
     @Override
     public void delete(Long id) {
-        // Pasar a Soft Delete
         crudRepository.deleteById(id);
     }
 
     @Override
     public boolean existsOpenTicket(String title, Long requesterId, TicketStatus status) {
-        return crudRepository.existsByTitleAndRequesterIdAndTicketStatus(title, requesterId, status);
+        return crudRepository.existsByTitleAndRequesterIdAndTicketStatusAndIsActiveTrue(title, requesterId, status);
     }
 }

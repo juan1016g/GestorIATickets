@@ -54,4 +54,25 @@ public class GlobalExceptionHandler {
         Map<String, Object> body = buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Ha ocurrido un error inesperado en el servidor.", request);
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<Object> handleHttpMessageNotReadable(
+            org.springframework.http.converter.HttpMessageNotReadableException ex,
+            HttpServletRequest request) {
+
+        String message = "El cuerpo de la solicitud es inválido o tiene un formato incorrecto.";
+
+        if (ex.getCause() instanceof com.fasterxml.jackson.databind.exc.InvalidFormatException ifx) {
+            if (ifx.getTargetType() != null && ifx.getTargetType().isEnum()) {
+                message = String.format("Valor inválido '%s' para el campo '%s'. Valores permitidos: %s",
+                        ifx.getValue(),
+                        ifx.getPath().isEmpty() ? "campo" : ifx.getPath().get(0).getFieldName(),
+                        java.util.Arrays.toString(ifx.getTargetType().getEnumConstants()));
+            }
+        }
+
+        Map<String, Object> body = buildErrorResponse(HttpStatus.BAD_REQUEST, message, request);
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
 }

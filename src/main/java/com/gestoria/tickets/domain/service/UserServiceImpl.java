@@ -4,6 +4,7 @@ import com.gestoria.tickets.domain.dto.UserDto;
 import com.gestoria.tickets.domain.exception.BusinessException;
 import com.gestoria.tickets.domain.exception.ResourceNotFoundException;
 import com.gestoria.tickets.domain.repository.UserRepository;
+import com.gestoria.tickets.persistence.entity.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto createUser(UserDto userDto) {
+
+        if (userDto.getRole() == null) {
+            userDto.setRole(Role.USER);
+        }
+
+        if (userDto.getRole() != Role.USER && userDto.getRole() != Role.SUPPORT) {
+            throw new BusinessException("El rol especificado no está autorizado. Roles válidos: USER, SUPPORT.");
+        }
+
         if (userRepository.existsByEmail(userDto.getEmail())) {
             throw new BusinessException("El email ya se encuentra registrado en el sistema.");
         }
@@ -38,4 +48,5 @@ public class UserServiceImpl implements UserService {
     public List<UserDto> getAllUsers() {
         return userRepository.findAll();
     }
+
 }

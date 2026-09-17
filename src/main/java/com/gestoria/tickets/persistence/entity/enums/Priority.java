@@ -1,5 +1,7 @@
 package com.gestoria.tickets.persistence.entity.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum Priority {
     LOW("BAJA"),
     MEDIUM("MEDIA"),
@@ -12,6 +14,7 @@ public enum Priority {
         this.priorityName = priorityName;
     }
 
+    @JsonValue
     public String getPriorityName() {
         return this.priorityName;
     }}

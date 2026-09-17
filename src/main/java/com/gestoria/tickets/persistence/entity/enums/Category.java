@@ -1,5 +1,7 @@
 package com.gestoria.tickets.persistence.entity.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum Category {
     HARDWARE("HARDWARE"),
     SOFTWARE("SOFTWARE"),
@@ -13,6 +15,7 @@ public enum Category {
         this.categoryName = categoryName;
     }
 
+    @JsonValue
     public String getCategoryName() {
         return this.categoryName;
     }}

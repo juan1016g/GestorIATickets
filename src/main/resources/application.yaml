@@ -8,7 +8,7 @@ spring:
 
 server:
   servlet:
-    context-path: /api
+    context-path: /gestoria/tickets/api
 
 langchain4j:
   google-ai-gemini:

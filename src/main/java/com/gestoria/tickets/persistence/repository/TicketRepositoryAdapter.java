@@ -7,6 +7,8 @@ import com.gestoria.tickets.persistence.entity.TicketEntity;
 import com.gestoria.tickets.persistence.entity.enums.TicketStatus;
 import com.gestoria.tickets.persistence.mapper.TicketMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -22,6 +24,11 @@ public class TicketRepositoryAdapter implements TicketRepository {
     @Override
     public List<TicketDto> findAll() {
         return mapper.toTicketDtos(crudRepository.findAll());
+    }
+
+    @Override
+    public Page<TicketDto> findAll(Pageable pageable) {
+        return crudRepository.findAll(pageable).map(mapper::toTicketDto);
     }
 
     @Override

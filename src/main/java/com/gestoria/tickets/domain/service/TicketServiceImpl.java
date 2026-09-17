@@ -7,6 +7,10 @@ import com.gestoria.tickets.domain.repository.TicketRepository;
 import com.gestoria.tickets.domain.repository.UserRepository;
 import com.gestoria.tickets.persistence.entity.enums.TicketStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -44,9 +48,17 @@ public class TicketServiceImpl implements TicketService {
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket no encontrado con el ID:" + id));
     }
 
+//    @Override
+//    public List<TicketDto> getAllTickets() {
+//        return ticketRepository.findAll();
+//    }
+
     @Override
-    public List<TicketDto> getAllTickets() {
-        return ticketRepository.findAll();
+    public Page<TicketDto> getAllTickets(int page, int size, String sortBy, String sortDirection) {
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return ticketRepository.findAll(pageable);
     }
 
     @Override

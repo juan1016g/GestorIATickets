@@ -6,7 +6,9 @@ import com.gestoria.tickets.domain.service.TicketService;
 import com.gestoria.tickets.persistence.entity.enums.Category;
 import com.gestoria.tickets.persistence.entity.enums.Priority;
 import com.gestoria.tickets.persistence.entity.enums.TicketStatus;
+import com.gestoria.tickets.web.dto.request.AssignTechnicianRequest;
 import com.gestoria.tickets.web.dto.request.TicketRequest;
+import com.gestoria.tickets.web.dto.request.TicketStatusRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,9 +42,14 @@ public class TicketController {
             @RequestParam(defaultValue = "8") int size,
             @RequestParam(defaultValue = "createdDate") String sortBy,
             @RequestParam(defaultValue = "ASC") String sortDirection,
-            @RequestParam(required = false) String status
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String priority,
+            @RequestParam(required = false) Long requesterId
     ){
         TicketStatus enumStatus = null;
+        Category enumCategory = null;
+        Priority enumPriority = null;
 
         if (status != null && !status.trim().isEmpty()) {
             try {
@@ -53,7 +60,28 @@ public class TicketController {
             }
         }
 
-        return ResponseEntity.ok(ticketService.getAllTickets(page, size, sortBy, sortDirection, enumStatus));
+        if (category != null && !category.trim().isEmpty()) {
+            try {
+                enumCategory = Category.fromSpanish(category);
+            } catch (IllegalArgumentException e) {
+                throw new com.gestoria.tickets.domain.exception.BusinessException(
+                        "Categoría no válida. Valores permitidos: HARDWARE, SOFTWARE, CONECTIVIDAD, ACCESOS, OTRO");
+            }
+        }
+
+        if (priority != null && !priority.trim().isEmpty()) {
+            try {
+                enumPriority = Priority.fromSpanish(priority);
+            } catch (IllegalArgumentException e) {
+                throw new com.gestoria.tickets.domain.exception.BusinessException(
+                        "Prioridad no válida. Valores permitidos: BAJA, MEDIA, ALTA, CRITICA");
+            }
+        }
+
+        return ResponseEntity.ok(ticketService.getAllTickets(
+                page, size, sortBy, sortDirection,
+                enumStatus, enumCategory, enumPriority, requesterId
+        ));
     }
 
     @GetMapping("/{id}")
@@ -61,9 +89,28 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getTicketById(id));
     }
 
-    @PatchMapping("/{id}/resolve")
-    public ResponseEntity<TicketDto> resolveTicket(@PathVariable Long id) {
-        return ResponseEntity.ok(ticketService.resolveTicket(id));
+    @PatchMapping("/{id}/estado")
+    public ResponseEntity<TicketDto> updateTicketStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody TicketStatusRequest request) {
+
+        TicketStatus enumStatus;
+        try {
+            enumStatus = TicketStatus.fromSpanish(request.getEstado());
+        } catch (IllegalArgumentException e) {
+            throw new com.gestoria.tickets.domain.exception.BusinessException(
+                    "Estado no válido. Valores permitidos: ABIERTO, EN_PROCESO, RESUELTO, CERRADO");
+        }
+
+        return ResponseEntity.ok(ticketService.updateTicketStatus(id, enumStatus));
+    }
+
+    @PatchMapping("/{id}/asignar")
+    public ResponseEntity<TicketDto> assignTechnician(
+            @PathVariable Long id,
+            @Valid @RequestBody AssignTechnicianRequest request) {
+
+        return ResponseEntity.ok(ticketService.assignTechnician(id, request.getTecnicoId()));
     }
 
     @DeleteMapping("/{id}")

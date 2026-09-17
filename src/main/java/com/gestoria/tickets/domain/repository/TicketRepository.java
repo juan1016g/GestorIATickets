@@ -1,6 +1,8 @@
 package com.gestoria.tickets.domain.repository;
 
 import com.gestoria.tickets.domain.dto.TicketDto;
+import com.gestoria.tickets.persistence.entity.enums.Category;
+import com.gestoria.tickets.persistence.entity.enums.Priority;
 import com.gestoria.tickets.persistence.entity.enums.TicketStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,7 +12,7 @@ import java.util.Optional;
 
 public interface TicketRepository {
     List<TicketDto> findAll();
-    Page<TicketDto> findAll(Pageable pageable, TicketStatus status);
+    Page<TicketDto> findAll(Pageable pageable, TicketStatus status, Category category, Priority priority, Long requesterId);
     Optional<TicketDto> findById(Long id);
     TicketDto save(TicketDto ticketDto);
     void delete(Long id);

@@ -91,17 +91,51 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public Page<TicketDto> getAllTickets(int page, int size, String sortBy, String sortDirection, TicketStatus status) {
+    public Page<TicketDto> getAllTickets(
+            int page,
+            int size,
+            String sortBy,
+            String sortDirection,
+            TicketStatus status,
+            Category category,
+            Priority priority,
+            Long requesterId
+    ) {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        return ticketRepository.findAll(pageable, status);
+        return ticketRepository.findAll(pageable, status, category, priority, requesterId);
     }
 
     @Override
-    public TicketDto resolveTicket(Long id) {
+    public TicketDto assignTechnician(Long ticketId, Long technicianId) {
+        TicketDto ticket = getTicketById(ticketId);
+
+        UserDto technician = userRepository.findById(technicianId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con el ID: " + technicianId));
+
+        if (technician.getRole() == null || !technician.getRole().name().equalsIgnoreCase("SUPPORT")) {
+            throw new com.gestoria.tickets.domain.exception.BusinessException(
+                    "Solo un usuario con rol SOPORTE puede ser asignado como técnico.");
+        }
+
+        ticket.setAssignee(technician);
+        ticket.setTicketStatus(TicketStatus.IN_PROGRESS);
+
+        return ticketRepository.save(ticket);
+    }
+
+    @Override
+    public TicketDto updateTicketStatus(Long id, TicketStatus status) {
         TicketDto ticket = getTicketById(id);
-        ticket.setTicketStatus(TicketStatus.RESOLVED);
+
+        boolean isClosing = (status == TicketStatus.RESOLVED || status == TicketStatus.CLOSED);
+        if (isClosing && ticket.getAssignee() == null) {
+            throw new com.gestoria.tickets.domain.exception.BusinessException(
+                    "No se puede resolver o cerrar un ticket que no tiene un técnico asignado.");
+        }
+
+        ticket.setTicketStatus(status);
         return ticketRepository.save(ticket);
     }
 

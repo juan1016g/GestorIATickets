@@ -10,8 +10,9 @@ public interface TicketService {
     TicketDto createTicket(TicketDto ticketDto);
     TicketDto getTicketById(Long id);
     //List<TicketDto> getAllTickets();
-    Page<TicketDto> getAllTickets(int page, int size, String sortBy, String sortDirection, TicketStatus status);
-    TicketDto resolveTicket(Long id);
+    Page<TicketDto> getAllTickets(int page, int size, String sortBy, String sortDirection, TicketStatus status, Category category, Priority priority, Long requesterId);
+    TicketDto updateTicketStatus(Long id, TicketStatus status);
     void deleteTicket(Long id);
     TicketDto updateTicketClassification(Long id, Category category, Priority priority);
+    TicketDto assignTechnician(Long ticketId, Long technicianId);
 }

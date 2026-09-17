@@ -4,6 +4,8 @@ import com.gestoria.tickets.domain.dto.TicketDto;
 import com.gestoria.tickets.domain.repository.TicketRepository;
 import com.gestoria.tickets.persistence.crud.TicketCrudRepository;
 import com.gestoria.tickets.persistence.entity.TicketEntity;
+import com.gestoria.tickets.persistence.entity.enums.Category;
+import com.gestoria.tickets.persistence.entity.enums.Priority;
 import com.gestoria.tickets.persistence.entity.enums.TicketStatus;
 import com.gestoria.tickets.persistence.mapper.TicketMapper;
 import lombok.RequiredArgsConstructor;
@@ -27,11 +29,15 @@ public class TicketRepositoryAdapter implements TicketRepository {
     }
 
     @Override
-    public Page<TicketDto> findAll(Pageable pageable, TicketStatus status) {
-        if (status != null) {
-            return crudRepository.findByTicketStatus(status, pageable).map(mapper::toTicketDto);
-        }
-        return crudRepository.findAll(pageable).map(mapper::toTicketDto);
+    public Page<TicketDto> findAll(
+            Pageable pageable,
+            TicketStatus status,
+            Category category,
+            Priority priority,
+            Long requesterId
+    ) {
+        return crudRepository.findAllByFilters(status, category, priority, requesterId, pageable)
+                .map(mapper::toTicketDto);
     }
 
     @Override

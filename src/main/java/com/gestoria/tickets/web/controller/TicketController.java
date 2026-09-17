@@ -9,6 +9,9 @@ import com.gestoria.tickets.persistence.entity.enums.TicketStatus;
 import com.gestoria.tickets.web.dto.request.AssignTechnicianRequest;
 import com.gestoria.tickets.web.dto.request.TicketRequest;
 import com.gestoria.tickets.web.dto.request.TicketStatusRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,11 +22,13 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/tickets")
 @RequiredArgsConstructor
+@Tag(name = "1. Tickets", description = "Gestión centralizada de incidencias. Incluye análisis semántico con IA y reglas de negocio.")
 public class TicketController {
 
     private final TicketService ticketService;
 
     @PostMapping
+    @Operation(summary = "Crear Ticket (Clasificación IA)", description = "Registra una nueva incidencia. El sistema delega el análisis semántico a Google Gemini para inferir automáticamente la Categoría, Prioridad y generar un Resumen Ejecutivo. Si la IA falla, se aplica un motor de reglas Fallback.")
     public ResponseEntity<TicketDto> createTicket(@Valid @RequestBody TicketRequest request) {
 
         TicketDto ticketDto = TicketDto.builder()
@@ -37,15 +42,16 @@ public class TicketController {
     }
 
     @GetMapping
+    @Operation(summary = "Consultar Tickets (Búsqueda Multi-Filtro)", description = "Obtiene una lista paginada de tickets. Soporta filtrado combinado por estado, categoría, prioridad y usuario solicitante.")
     public ResponseEntity<Page<TicketDto>> getAllTickets(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "8") int size,
-            @RequestParam(defaultValue = "createdDate") String sortBy,
-            @RequestParam(defaultValue = "ASC") String sortDirection,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String priority,
-            @RequestParam(required = false) Long requesterId
+            @Parameter(description = "Número de página (inicia en 0)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Tamaño de la página") @RequestParam(defaultValue = "8") int size,
+            @Parameter(description = "Campo de ordenamiento") @RequestParam(defaultValue = "createdDate") String sortBy,
+            @Parameter(description = "Dirección de ordenamiento (ASC/DESC)") @RequestParam(defaultValue = "ASC") String sortDirection,
+            @Parameter(description = "Filtrar por estado (Ej. ABIERTO)") @RequestParam(required = false) String status,
+            @Parameter(description = "Filtrar por categoría (Ej. CONECTIVIDAD)") @RequestParam(required = false) String category,
+            @Parameter(description = "Filtrar por prioridad (Ej. ALTA)") @RequestParam(required = false) String priority,
+            @Parameter(description = "Filtrar por ID de usuario solicitante") @RequestParam(required = false) Long requesterId
     ){
         TicketStatus enumStatus = null;
         Category enumCategory = null;
@@ -85,11 +91,13 @@ public class TicketController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Obtener Ticket por ID", description = "Consulta todos los detalles, estado e historial de un ticket específico.")
     public ResponseEntity<TicketDto> getTicketById(@PathVariable Long id) {
         return ResponseEntity.ok(ticketService.getTicketById(id));
     }
 
     @PatchMapping("/{id}/estado")
+    @Operation(summary = "Actualizar Estado del Ticket", description = "Modifica el estado operativo del ticket. Regla de Negocio: No es posible marcar como RESUELTO o CERRADO si no cuenta con un técnico asignado.")
     public ResponseEntity<TicketDto> updateTicketStatus(
             @PathVariable Long id,
             @Valid @RequestBody TicketStatusRequest request) {
@@ -106,6 +114,7 @@ public class TicketController {
     }
 
     @PatchMapping("/{id}/asignar")
+    @Operation(summary = "Asignar Técnico", description = "Vincula un responsable de soporte al ticket. El usuario proporcionado debe contar obligatoriamente con el rol SUPPORT.")
     public ResponseEntity<TicketDto> assignTechnician(
             @PathVariable Long id,
             @Valid @RequestBody AssignTechnicianRequest request) {
@@ -114,12 +123,14 @@ public class TicketController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar Ticket (Soft Delete)", description = "Realiza un borrado lógico (is_active = false) preservando el registro para métricas históricas (SLA) e integridad referencial de base de datos.")
     public ResponseEntity<Void> deleteTicket(@PathVariable Long id) {
         ticketService.deleteTicket(id);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/classification")
+    @Operation(summary = "Modificar Clasificación Manualmente", description = "Permite a los administradores o técnicos sobrescribir la categoría y prioridad asignada inicialmente por la Inteligencia Artificial.")
     public ResponseEntity<TicketDto> updateClassification(
             @PathVariable Long id,
             @RequestParam(required = false) String category,
@@ -147,5 +158,4 @@ public class TicketController {
 
         return ResponseEntity.ok(ticketService.updateTicketClassification(id, enumCategory, enumPriority));
     }
-
 }

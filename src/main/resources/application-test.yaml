@@ -1,0 +1,20 @@
+server:
+  port: 0
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tickets_db_test
+    username: test
+    password: test
+  jpa:
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: false
+
+langchain4j:
+  google-ai-gemini:
+    chat-model:
+      api-key: test-dummy-key
+      model-name: gemini-3.1-flash-lite
+      timeout: 15s

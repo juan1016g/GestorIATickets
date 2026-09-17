@@ -1,5 +1,6 @@
 package com.gestoria.tickets.persistence.entity.enums;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Category {
@@ -18,4 +19,19 @@ public enum Category {
     @JsonValue
     public String getCategoryName() {
         return this.categoryName;
-    }}
+    }
+
+    @JsonCreator
+    public static Category fromSpanish(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return null;
+        }
+        for (Category c : Category.values()) {
+            if (c.categoryName.equalsIgnoreCase(text.trim()) || c.name().equalsIgnoreCase(text.trim())) {
+                return c;
+            }
+        }
+        throw new IllegalArgumentException("Categoría no válida: " + text);
+    }
+
+}

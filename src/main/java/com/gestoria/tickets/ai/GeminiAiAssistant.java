@@ -29,4 +29,20 @@ public interface GeminiAiAssistant {
             Descripción: {{description}}
             """)
     String generateTags(@V("title") String title, @V("description") String description);
+
+    @SystemMessage("""
+            Eres un sistema experto de soporte IT. Analiza el título y descripción provistos.
+            Devuelve ÚNICAMENTE un JSON válido con esta estructura exacta, sin texto adicional ni formato Markdown:
+            {
+              "category": "Una de: HARDWARE, SOFTWARE, NETWORK, OTHER",
+              "priority": "Una de: LOW, MEDIUM, HIGH, URGENT",
+              "summary": "Resumen técnico en máximo 150 caracteres",
+              "tags": ["tag1", "tag2", "tag3"]
+            }
+            """)
+    @UserMessage("""
+            Título: {{title}}.
+            Descripción: {{description}}
+            """)
+    String analyzeTicketStructure(@V("title") String title, @V("description") String description);
 }

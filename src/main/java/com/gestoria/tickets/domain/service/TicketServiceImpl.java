@@ -5,6 +5,8 @@ import com.gestoria.tickets.domain.dto.UserDto;
 import com.gestoria.tickets.domain.exception.ResourceNotFoundException;
 import com.gestoria.tickets.domain.repository.TicketRepository;
 import com.gestoria.tickets.domain.repository.UserRepository;
+import com.gestoria.tickets.persistence.entity.enums.Category;
+import com.gestoria.tickets.persistence.entity.enums.Priority;
 import com.gestoria.tickets.persistence.entity.enums.TicketStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -37,9 +39,49 @@ public class TicketServiceImpl implements TicketService {
         ticketDto.setTicketStatus(TicketStatus.OPEN);
         ticketDto.setIsActive(true);
 
-        TicketDto enrichedTicket = aiAnalyzerService.analyzeAndEnrichTicket(ticketDto);
+        TicketDto enrichedTicket;
+
+        try {
+            // Intento 1: IA procesa todo
+            enrichedTicket = aiAnalyzerService.analyzeAndEnrichTicket(ticketDto);
+        } catch (Exception e) {
+            // Intento 2: Fallback por reglas de palabras clave
+            enrichedTicket = applyFallbackRules(ticketDto);
+        }
+
 
         return ticketRepository.save(enrichedTicket);
+    }
+
+    private TicketDto applyFallbackRules(TicketDto ticket) {
+        String content = (ticket.getTitle() + " " + ticket.getDescription()).toLowerCase();
+
+        if (content.contains("internet") || content.contains("wifi") || content.contains("red")) {
+            ticket.setCategory(Category.CONNECTIVITY);
+        } else if (content.contains("pantalla") || content.contains("teclado") || content.contains("equipo")) {
+            ticket.setCategory(Category.HARDWARE);
+        } else {
+            ticket.setCategory(Category.OTHER);
+        }
+
+        if (content.contains("urgente") || content.contains("reunión") || content.contains("bloqueado")) {
+            ticket.setPriority(Priority.HIGH);
+        } else {
+            ticket.setPriority(Priority.MEDIUM);
+        }
+
+        ticket.setAiSummary("Clasificación por reglas locales (IA no disponible).");
+        ticket.setAiTags(List.of("MANUAL", "FALLBACK"));
+
+        return ticket;
+    }
+
+    @Override
+    public TicketDto updateTicketClassification(Long id, Category category, Priority priority) {
+        TicketDto ticket = getTicketById(id);
+        if (category != null) ticket.setCategory(category);
+        if (priority != null) ticket.setPriority(priority);
+        return ticketRepository.save(ticket);
     }
 
     @Override
@@ -47,11 +89,6 @@ public class TicketServiceImpl implements TicketService {
         return ticketRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket no encontrado con el ID:" + id));
     }
-
-//    @Override
-//    public List<TicketDto> getAllTickets() {
-//        return ticketRepository.findAll();
-//    }
 
     @Override
     public Page<TicketDto> getAllTickets(int page, int size, String sortBy, String sortDirection, TicketStatus status) {

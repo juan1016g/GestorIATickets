@@ -1,7 +1,5 @@
 package com.gestoria.tickets.web.dto.request;
 
-import com.gestoria.tickets.persistence.entity.enums.Category;
-import com.gestoria.tickets.persistence.entity.enums.Priority;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -18,12 +16,6 @@ public class TicketRequest {
 
     @NotBlank(message = "La descripción es obligatoria")
     private String description;
-
-    @NotNull(message = "La categoría es obligatoria")
-    private Category category;
-
-    @NotNull(message = "La prioridad es obligatoria")
-    private Priority priority;
 
     @NotNull(message = "El ID del usuario solicitante es obligatorio")
     private Long requesterId;

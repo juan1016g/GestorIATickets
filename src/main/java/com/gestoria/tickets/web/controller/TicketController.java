@@ -3,6 +3,8 @@ package com.gestoria.tickets.web.controller;
 import com.gestoria.tickets.domain.dto.TicketDto;
 import com.gestoria.tickets.domain.dto.UserDto;
 import com.gestoria.tickets.domain.service.TicketService;
+import com.gestoria.tickets.persistence.entity.enums.Category;
+import com.gestoria.tickets.persistence.entity.enums.Priority;
 import com.gestoria.tickets.persistence.entity.enums.TicketStatus;
 import com.gestoria.tickets.web.dto.request.TicketRequest;
 import jakarta.validation.Valid;
@@ -25,8 +27,6 @@ public class TicketController {
         TicketDto ticketDto = TicketDto.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .category(request.getCategory())
-                .priority(request.getPriority())
                 .requester(UserDto.builder().id(request.getRequesterId()).build())
                 .build();
 
@@ -71,4 +71,34 @@ public class TicketController {
         ticketService.deleteTicket(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PatchMapping("/{id}/classification")
+    public ResponseEntity<TicketDto> updateClassification(
+            @PathVariable Long id,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String priority) {
+
+        Category enumCategory = null;
+        if (category != null && !category.trim().isEmpty()) {
+            try {
+                enumCategory = Category.fromSpanish(category);
+            } catch (IllegalArgumentException e) {
+                throw new com.gestoria.tickets.domain.exception.BusinessException(
+                        "Categoría no válida. Valores permitidos: HARDWARE, SOFTWARE, CONECTIVIDAD, ACCESOS, OTRO");
+            }
+        }
+
+        Priority enumPriority = null;
+        if (priority != null && !priority.trim().isEmpty()) {
+            try {
+                enumPriority = Priority.fromSpanish(priority);
+            } catch (IllegalArgumentException e) {
+                throw new com.gestoria.tickets.domain.exception.BusinessException(
+                        "Prioridad no válida. Valores permitidos: BAJA, MEDIA, ALTA, CRITICA");
+            }
+        }
+
+        return ResponseEntity.ok(ticketService.updateTicketClassification(id, enumCategory, enumPriority));
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.gestoria.tickets.domain.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import com.gestoria.tickets.persistence.entity.enums.Category;
 import com.gestoria.tickets.persistence.entity.enums.Priority;
@@ -25,4 +26,7 @@ public class TicketDto {
     private List<String> aiTags;
     private Boolean isActive;
     private LocalDateTime createdDate;
+
+    @JsonIgnore
+    private Long version;
 }

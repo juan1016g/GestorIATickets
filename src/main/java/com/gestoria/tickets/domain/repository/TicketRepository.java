@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface TicketRepository {
     List<TicketDto> findAll();
-    Page<TicketDto> findAll(Pageable pageable);
+    Page<TicketDto> findAll(Pageable pageable, TicketStatus status);
     Optional<TicketDto> findById(Long id);
     TicketDto save(TicketDto ticketDto);
     void delete(Long id);

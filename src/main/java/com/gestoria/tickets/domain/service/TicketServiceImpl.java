@@ -54,11 +54,11 @@ public class TicketServiceImpl implements TicketService {
 //    }
 
     @Override
-    public Page<TicketDto> getAllTickets(int page, int size, String sortBy, String sortDirection) {
+    public Page<TicketDto> getAllTickets(int page, int size, String sortBy, String sortDirection, TicketStatus status) {
         Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortBy);
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        return ticketRepository.findAll(pageable);
+        return ticketRepository.findAll(pageable, status);
     }
 
     @Override

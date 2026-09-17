@@ -27,7 +27,10 @@ public class TicketRepositoryAdapter implements TicketRepository {
     }
 
     @Override
-    public Page<TicketDto> findAll(Pageable pageable) {
+    public Page<TicketDto> findAll(Pageable pageable, TicketStatus status) {
+        if (status != null) {
+            return crudRepository.findByTicketStatus(status, pageable).map(mapper::toTicketDto);
+        }
         return crudRepository.findAll(pageable).map(mapper::toTicketDto);
     }
 

@@ -3,6 +3,7 @@ package com.gestoria.tickets.web.controller;
 import com.gestoria.tickets.domain.dto.TicketDto;
 import com.gestoria.tickets.domain.dto.UserDto;
 import com.gestoria.tickets.domain.service.TicketService;
+import com.gestoria.tickets.persistence.entity.enums.TicketStatus;
 import com.gestoria.tickets.web.dto.request.TicketRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,8 +11,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/tickets")
@@ -40,9 +39,21 @@ public class TicketController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "8") int size,
             @RequestParam(defaultValue = "createdDate") String sortBy,
-            @RequestParam(defaultValue = "ASC") String sortDirection
+            @RequestParam(defaultValue = "ASC") String sortDirection,
+            @RequestParam(required = false) String status
     ){
-        return ResponseEntity.ok(ticketService.getAllTickets(page, size, sortBy, sortDirection));
+        TicketStatus enumStatus = null;
+
+        if (status != null && !status.trim().isEmpty()) {
+            try {
+                enumStatus = TicketStatus.fromSpanish(status);
+            } catch (IllegalArgumentException e) {
+                throw new com.gestoria.tickets.domain.exception.BusinessException(
+                        "Estado no válido. Valores permitidos: ABIERTO, EN PROCESO, RESUELTO, CERRADO");
+            }
+        }
+
+        return ResponseEntity.ok(ticketService.getAllTickets(page, size, sortBy, sortDirection, enumStatus));
     }
 
     @GetMapping("/{id}")

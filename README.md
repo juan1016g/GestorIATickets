@@ -1,18 +1,19 @@
 # 🎫 Sistema Inteligente de Gestión de Tickets (GestorIATickets)
 
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://oracle.com/java/)
-[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot--4.x-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Gradle](https://img.shields.io/badge/Gradle-8.x-blue.svg)](https://gradle.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-blue.svg)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-Enabled-blue.svg)](https://www.docker.com/)
 
-API RESTful desarrollada en **Java 21** y **Spring Boot 3** para la centralización y automatización del soporte técnico empresarial. El sistema incorpora Inteligencia Artificial (Spring AI / Provider APIs / Ollama) con un sistema de resiliencia mediante **Fallback por Reglas**, permitiendo triaje automático, categorización, asignación de prioridad, resúmenes e identificación de etiquetas.
+API RESTful desarrollada en **Java 21** y **Spring Boot** (`com.gestoria`) para la centralización y automatización del soporte técnico empresarial. El sistema incorpora Inteligencia Artificial para triaje automático (categorización, asignación de prioridad, resumen de máximo 30 palabras y etiquetas inteligentes), respaldado por un sistema de resiliencia mediante **Fallback por Reglas Locales**.
 
 ---
 
 ## 🚀 Entorno en Vivo
 
-La aplicación se encuentra desplegada y la documentación interactiva de la API está disponible públicamente:
-**[Ver Swagger UI en Render](https://gestoria-tickets-api.onrender.com/gestoria/tickets/api/swagger-ui/index.html)**
+La aplicación se encuentra desplegada y la documentación interactiva de la API está disponible públicamente:  
+👉 **[Ver Swagger UI en Render](https://gestoria-tickets-api.onrender.com/gestoria/tickets/api/swagger-ui/index.html)**
 
 ---
 
@@ -20,30 +21,31 @@ La aplicación se encuentra desplegada y la documentación interactiva de la API
 
 1. [Entorno en Vivo](#-entorno-en-vivo)
 2. [Descripción del Proyecto](#-descripción-del-proyecto)
-3. [Arquitectura y Diagramas de Sistema](#-arquitectura-y-diagramas-de-sistema)
+3. [Configuración de Gradle (`build.gradle`)](#-configuración-de-gradle-buildgradle)
+4. [Arquitectura y Diagramas de Sistema](#-arquitectura-y-diagramas-de-sistema)
    - [Diagrama Entidad-Relación (Modelo de Datos)](#-diagrama-entidad-relación-modelo-de-datos)
-   - [Diagrama de Secuencia y Flujo de IA (Triaje y Resiliencia)](#-diagrama-de-flujo-y-resiliencia-fallback)
-4. [Requisitos Previos](#-requisitos-previos)
-5. [Variables de Entorno](#-variables-de-entorno)
-6. [Instrucciones de Instalación y Ejecución](#-instrucciones-de-instalación-y-ejecución)
+   - [Diagrama de Flujo y Resiliencia (Fallback)](#-diagrama-de-flujo-y-resiliencia-fallback)
+5. [Requisitos Previos](#-requisitos-previos)
+6. [Variables de Entorno](#-variables-de-entorno)
+7. [Instrucciones de Instalación y Ejecución](#-instrucciones-de-instalación-y-ejecución)
    - [Ejecución Local con Docker Compose](#opción-1-ejecución-con-docker-compose-recomendado)
    - [Ejecución en IntelliJ IDEA (Windows / Linux)](#opción-2-ejecución-desde-intellij-idea)
-7. [Estrategia de Inteligencia Artificial y Resiliencia](#-estrategia-de-inteligencia-artificial-y-resiliencia)
-8. [Decisiones Técnicas Obligatorias](#-decisiones-técnicas-obligatorias)
+8. [Estrategia de Inteligencia Artificial y Resiliencia](#-estrategia-de-inteligencia-artificial-y-resiliencia)
+9. [Decisiones Técnicas Obligatorias](#-decisiones-técnicas-obligatorias)
    - [Borrado Lógico (Soft Delete) vs. Borrado Físico](#1-decisión-de-eliminación-borrado-lógico-soft-delete)
    - [Portabilidad Windows ↔ Linux](#2-portabilidad-multiplataforma-windows-intelliij--linux)
-9. [Documentación de la API (Endpoints)](#-documentación-de-la-api-endpoints)
-   - [Ejemplos de Solicitud y Respuesta](#ejemplos-de-solicitudes)
-10. [Pruebas Automatizadas](#-pruebas-automatizadas)
-11. [Limitaciones Conocidas](#-limitaciones-conocidas)
+10. [Documentación de la API (Endpoints)](#-documentación-de-la-api-endpoints)
+    - [Ejemplos de Solicitud y Respuesta](#ejemplos-de-solicitudes)
+11. [Pruebas Automatizadas](#-pruebas-automatizadas)
+12. [Limitaciones Conocidas](#-limitaciones-conocidas)
 
 ---
 
 ## 🚀 Descripción del Proyecto
 
-El **Sistema Inteligente de Gestión de Tickets** permite a los empleados de una organización registrar solicitudes de soporte técnico proporcionando únicamente un título y una descripción corta. 
+El **Sistema Inteligente de Gestión de Tickets** permite a los empleados de una organización registrar solicitudes de soporte técnico proporcionando únicamente un título y una descripción corta.
 
-Al registrar la solicitud, el sistema desencadena un flujo automatizado que:
+Al registrar la solicitud (`POST /api/tickets`), el sistema desencadena un flujo automatizado que:
 * Analiza la descripción mediante un modelo de lenguaje (LLM) o motor de reglas local.
 * Clasifica el incidente en una **Categoría** (`HARDWARE`, `SOFTWARE`, `CONECTIVIDAD`, `ACCESOS`, `OTRO`).
 * Determina el nivel de **Prioridad** (`BAJA`, `MEDIA`, `ALTA`, `CRITICA`).
@@ -52,12 +54,58 @@ Al registrar la solicitud, el sistema desencadena un flujo automatizado que:
 
 ---
 
+## 📦 Configuración de Gradle (`build.gradle`)
+
+El proyecto utiliza **Gradle** con Java 21 como toolchain base (`JavaLanguageVersion.of(21)`). A continuación se detalla la configuración clave del archivo `build.gradle`:
+
+```groovy
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.1.1' // Spring Boot Plugin
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.gestoria'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // 1. Núcleo y Web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // 2. Persistencia y Base de Datos (PostgreSQL & Flyway)
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+
+    // 3. Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+```
+
+---
+
 ## 🏗️ Arquitectura y Diagramas de Sistema
 
-El proyecto sigue una arquitectura en capas limpia (*Clean Layered Architecture*) con separación estricta de responsabilidades:
+El proyecto sigue una arquitectura en capas limpia (*Clean Layered Architecture*) bajo el paquete `com.gestoria`:
 
 ```text
-src/main/java/com/empresa/tickets/
+src/main/java/com/gestoria/
 ├── ai/          # Clientes de IA, Prompts, Estrategia Fallback y Clasificador Local
 ├── config/      # Configuración de OpenAPI, JPA, Security y Beans de IA
 ├── controller/  # Controladores REST API (@RestController)
@@ -134,8 +182,8 @@ flowchart TD
 
 ## 💻 Requisitos Previos
 
-* **Java Development Kit (JDK)**: 21 o superior.
-* **Gestor de Construcción**: Gradle (con Gradle Wrapper `./gradlew`) o Maven (`./mvnw`).
+* **Java Development Kit (JDK)**: 21 (configurado en el toolchain de Gradle).
+* **Gestor de Construcción**: Gradle (con Gradle Wrapper `./gradlew`).
 * **Docker & Docker Compose**: Versión 24.0+ / 2.20+ (para PostgreSQL y entorno aislado).
 * **IDE**: IntelliJ IDEA 2023.3+ (compatible con Windows y Linux).
 
@@ -155,7 +203,7 @@ DB_USERNAME=postgres
 DB_PASSWORD=postgres
 DB_DRIVER=org.postgresql.Driver
 
-# Configuración del Proveedor de Inteligencia Artificial (OpenAI / Spring AI)
+# Configuración del Proveedor de Inteligencia Artificial (OpenAI / Spring AI / Gemini)
 AI_PROVIDER=openai
 AI_API_KEY=tu_api_key_aqui_sin_comillas
 AI_MODEL=gpt-4o-mini
@@ -207,7 +255,7 @@ La aplicación estará disponible en `http://localhost:8080`.
 5. Ejecutar la clase principal `GestorIATicketsApplication.java`.
 
 #### En Linux / macOS:
-1. Asegurar permisos de ejecución para el wrapper de Gradle/Maven:
+1. Asegurar permisos de ejecución para el wrapper de Gradle:
    ```bash
    chmod +x gradlew
    ```
@@ -253,9 +301,10 @@ Se implementó **Borrado Lógico (Soft Delete)** mediante el campo `activo` (`bo
 
 ### 2. Portabilidad Multiplataforma (Windows IntelliJ ↔ Linux)
 Para garantizar el desarrollo fluido en Windows (IntelliJ IDEA) y su despliegue inmediato en entornos Linux:
-* **Fin de línea `.gitattributes`**: Se incluyó una regla de Git (`* text=auto eol=lf`) para forzar saltos de línea `LF` en scripts y código fuente, evitando errores `\r: command not found` en bash.
+* **Fin de línea `.gitattributes`**: Se incluyó una regla de Git (`* text=auto eol=lf`) para forzar saltos de línea `LF` en scripts y código fuente, evitando errores `
+: command not found` en bash.
 * **Permisos de Wrappers**: El archivo `gradlew` cuenta con bits de ejecución activados en Git (`git update-index --chmod=+x gradlew`).
-* **Bases de Datos e Invarianza de Nombres**: Se utilizaron minúsculas en esquemas y tablas (`snake_case`) para evitar incompabilidades con la sensibilidad a mayúsculas/minúsculas (*case-sensitivity*) de los sistemas de archivos Linux.
+* **Bases de Datos e Invarianza de Nombres**: Se utilizaron minúsculas en esquemas y tablas (`snake_case`) para evitar incompatibilidades con la sensibilidad a mayúsculas/minúsculas (*case-sensitivity*) de los sistemas de archivos Linux.
 
 ---
 
@@ -329,7 +378,7 @@ Documentación Swagger / OpenAPI interactiva en vivo: **[Ver Swagger UI en Rende
 El proyecto incluye un conjunto completo de pruebas unitarias y de integración desarrolladas con **JUnit 5**, **Mockito** y **MockMvc**:
 
 ```bash
-# Ejecutar todas las pruebas unitarias e integración
+# Ejecutar todas las pruebas unitarias e integración con Gradle
 ./gradlew test
 
 # Generar reporte de cobertura con JaCoCo

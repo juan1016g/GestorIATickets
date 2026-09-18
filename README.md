@@ -7,6 +7,11 @@
 
 API RESTful desarrollada en **Java 21** y **Spring Boot 3** para la centralización y automatización del soporte técnico empresarial. El sistema incorpora Inteligencia Artificial (Spring AI / Provider APIs / Ollama) con un sistema de resiliencia mediante **Fallback por Reglas**, permitiendo triaje automático, categorización, asignación de prioridad, resúmenes e identificación de etiquetas.
 
+## 🚀 Entorno en Vivo
+
+La aplicación se encuentra desplegada y la documentación interactiva de la API está disponible públicamente:
+**[Ver Swagger UI en Render](https://gestoria-tickets-api.onrender.com/gestoria/tickets/api/swagger-ui/index.html)**
+
 ---
 
 ## 📋 Tabla de Contenidos
@@ -29,7 +34,7 @@ API RESTful desarrollada en **Java 21** y **Spring Boot 3** para la centralizaci
 
 ---
 
-## 🚀 Descripción del Proyecto
+## 📃 Descripción del Proyecto
 
 El **Sistema Inteligente de Gestión de Tickets** permite a los empleados de una organización registrar solicitudes de soporte técnico proporcionando únicamente un título y una descripción corta.
 

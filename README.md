@@ -7,6 +7,8 @@
 
 API RESTful desarrollada en **Java 21** y **Spring Boot 3** para la centralización y automatización del soporte técnico empresarial. El sistema incorpora Inteligencia Artificial (Spring AI / Provider APIs / Ollama) con un sistema de resiliencia mediante **Fallback por Reglas**, permitiendo triaje automático, categorización, asignación de prioridad, resúmenes e identificación de etiquetas.
 
+---
+
 ## 🚀 Entorno en Vivo
 
 La aplicación se encuentra desplegada y la documentación interactiva de la API está disponible públicamente:
@@ -16,27 +18,30 @@ La aplicación se encuentra desplegada y la documentación interactiva de la API
 
 ## 📋 Tabla de Contenidos
 
-1. [Descripción del Proyecto](#-descripción-del-proyecto)
-2. [Arquitectura y Patron de Diseño](#-arquitectura-y-patrón-de-diseño)
-3. [Requisitos Previos](#-requisitos-previos)
-4. [Variables de Entorno](#-variables-de-entorno)
-5. [Instrucciones de Instalación y Ejecución](#-instrucciones-de-instalación-y-ejecución)
-    - [Ejecución Local con Docker Compose](#opción-1-ejecución-con-docker-compose-recomendado)
-    - [Ejecución en IntelliJ IDEA (Windows / Linux)](#opción-2-ejecución-desde-intellij-idea)
-6. [Estrategia de Inteligencia Artificial y Resiliencia](#-estrategia-de-inteligencia-artificial-y-resiliencia)
-7. [Decisiones Técnicas Obligatorias](#-decisiones-técnicas-obligatorias)
-    - [Borrado Lógico (Soft Delete) vs. Borrado Físico](#1-decisión-de-eliminación-borrado-lógico-soft-delete)
-    - [Portabilidad Windows ↔ Linux](#2-portabilidad-multiplataforma-windows-intelliij--linux)
-8. [Documentación de la API (Endpoints)](#-documentación-de-la-api-endpoints)
-    - [Ejemplos de Solicitud y Respuesta](#ejemplos-de-solicitudes)
-9. [Pruebas Automatizadas](#-pruebas-automatizadas)
-10. [Limitaciones Conocidas](#-limitaciones-conocidas)
+1. [Entorno en Vivo](#-entorno-en-vivo)
+2. [Descripción del Proyecto](#-descripción-del-proyecto)
+3. [Arquitectura y Diagramas de Sistema](#-arquitectura-y-diagramas-de-sistema)
+   - [Diagrama Entidad-Relación (Modelo de Datos)](#-diagrama-entidad-relación-modelo-de-datos)
+   - [Diagrama de Secuencia y Flujo de IA (Triaje y Resiliencia)](#-diagrama-de-flujo-y-resiliencia-fallback)
+4. [Requisitos Previos](#-requisitos-previos)
+5. [Variables de Entorno](#-variables-de-entorno)
+6. [Instrucciones de Instalación y Ejecución](#-instrucciones-de-instalación-y-ejecución)
+   - [Ejecución Local con Docker Compose](#opción-1-ejecución-con-docker-compose-recomendado)
+   - [Ejecución en IntelliJ IDEA (Windows / Linux)](#opción-2-ejecución-desde-intellij-idea)
+7. [Estrategia de Inteligencia Artificial y Resiliencia](#-estrategia-de-inteligencia-artificial-y-resiliencia)
+8. [Decisiones Técnicas Obligatorias](#-decisiones-técnicas-obligatorias)
+   - [Borrado Lógico (Soft Delete) vs. Borrado Físico](#1-decisión-de-eliminación-borrado-lógico-soft-delete)
+   - [Portabilidad Windows ↔ Linux](#2-portabilidad-multiplataforma-windows-intelliij--linux)
+9. [Documentación de la API (Endpoints)](#-documentación-de-la-api-endpoints)
+   - [Ejemplos de Solicitud y Respuesta](#ejemplos-de-solicitudes)
+10. [Pruebas Automatizadas](#-pruebas-automatizadas)
+11. [Limitaciones Conocidas](#-limitaciones-conocidas)
 
 ---
 
-## 📃 Descripción del Proyecto
+## 🚀 Descripción del Proyecto
 
-El **Sistema Inteligente de Gestión de Tickets** permite a los empleados de una organización registrar solicitudes de soporte técnico proporcionando únicamente un título y una descripción corta.
+El **Sistema Inteligente de Gestión de Tickets** permite a los empleados de una organización registrar solicitudes de soporte técnico proporcionando únicamente un título y una descripción corta. 
 
 Al registrar la solicitud, el sistema desencadena un flujo automatizado que:
 * Analiza la descripción mediante un modelo de lenguaje (LLM) o motor de reglas local.
@@ -47,7 +52,7 @@ Al registrar la solicitud, el sistema desencadena un flujo automatizado que:
 
 ---
 
-## 🏗️ Arquitectura y Patrón de Diseño
+## 🏗️ Arquitectura y Diagramas de Sistema
 
 El proyecto sigue una arquitectura en capas limpia (*Clean Layered Architecture*) con separación estricta de responsabilidades:
 
@@ -64,10 +69,66 @@ src/main/java/com/empresa/tickets/
 └── service/     # Lógica de negocio e interfaces de servicios
 ```
 
-### Principios Fundamentales
-* **Uso exclusivo de DTOs**: Ninguna entidad JPA se expone directamente a los controladores o al cliente final.
-* **Control de Concurrencia**: Uso de `@Version` para *Optimistic Locking* evitando colisiones en la asignación simultánea de tickets.
-* **Manejo Centralizado de Excepciones**: Respuestas de error estandarizadas (`ProblemDetails` / `ApiErrorResponse`).
+---
+
+### 🗄️ Diagrama Entidad-Relación (Modelo de Datos)
+
+```mermaid
+erDiagram
+    USUARIO ||--o{ TICKET : "solicita (1:N)"
+    USUARIO ||--o{ TICKET : "atiende como técnico (0:N)"
+    
+    USUARIO {
+        Long id PK
+        String nombre
+        String correo UK
+        String password
+        Rol rol "ADMIN | SOPORTE | USUARIO"
+        LocalDateTime fechaCreacion
+    }
+    
+    TICKET {
+        Long id PK
+        String titulo
+        String descripcion
+        Categoria categoria "HARDWARE | SOFTWARE | CONECTIVIDAD | ACCESOS | OTRO"
+        Prioridad prioridad "BAJA | MEDIA | ALTA | CRITICA"
+        Estado estado "ABIERTO | EN_PROCESO | RESUELTO | CERRADO"
+        Long usuarioSolicitanteId FK
+        Long tecnicoAsignadoId FK
+        String resumenIA
+        List etiquetasIA
+        Boolean activo "Soft Delete"
+        Long version "Optimistic Locking"
+        LocalDateTime fechaCreacion
+        LocalDateTime fechaActualizacion
+    }
+```
+
+---
+
+### 🔄 Diagrama de Flujo y Resiliencia (Fallback)
+
+```mermaid
+flowchart TD
+    A[Cliente / Frontend] -->|POST /api/tickets| B[TicketController]
+    B --> C[TicketService]
+    C --> D[AnalizadorTicketService]
+    
+    D --> E{¿API IA Disponible & < 3000ms?}
+    E -- Sí --> F[Proveedor LLM / Spring AI]
+    F --> G[Respuesta JSON Estructurada]
+    
+    E -- No / Timeout / Error --> H[Motor Local de Reglas / Fallback]
+    H --> I[Clasificación por Palabras Clave]
+    
+    G --> J[Objeto AnalisisTicketResponse]
+    I --> J
+    
+    J --> K[TicketRepository.save]
+    K --> L[PostgreSQL Database]
+    L --> M[Respuesta 201 Created al Cliente]
+```
 
 ---
 
@@ -175,10 +236,10 @@ public interface AnalizadorTicketService {
 ### 2. Motor de Fallback Local (Resilience4j / Rule Engine)
 Si la llamada a la API externa supera el tiempo límite (*Timeout* de 3000 ms), sufre problemas de red o cuota agotada:
 * El sistema activa automáticamente el **Clasificador Local basado en Reglas y Palabras Clave**:
-    * Palabras como `"wifi"`, `"internet"`, `"red"` -> Categoría `CONECTIVIDAD`.
-    * Palabras como `"password"`, `"contraseña"`, `"login"` -> Categoría `ACCESOS`.
-    * Palabras como `"pantalla"`, `"teclado"`, `"computador"` -> Categoría `HARDWARE`.
-    * Palabras como `"urgente"`, `"caído"`, `"reunión"` -> Prioridad `ALTA` / `CRITICA`.
+  * Palabras como `"wifi"`, `"internet"`, `"red"` -> Categoría `CONECTIVIDAD`.
+  * Palabras como `"password"`, `"contraseña"`, `"login"` -> Categoría `ACCESOS`.
+  * Palabras como `"pantalla"`, `"teclado"`, `"computador"` -> Categoría `HARDWARE`.
+  * Palabras como `"urgente"`, `"caído"`, `"reunión"` -> Prioridad `ALTA` / `CRITICA`.
 * Garantiza la disponibilidad del sistema (SLA 99.9%) sin bloquear al usuario.
 
 ---
@@ -201,7 +262,7 @@ Para garantizar el desarrollo fluido en Windows (IntelliJ IDEA) y su despliegue 
 ## 📑 Documentación de la API (Endpoints)
 
 Base URL: `http://localhost:8080/api`  
-Documentación Swagger / OpenAPI: `http://localhost:8080/swagger-ui.html`
+Documentación Swagger / OpenAPI interactiva en vivo: **[Ver Swagger UI en Render](https://gestoria-tickets-api.onrender.com/gestoria/tickets/api/swagger-ui/index.html)**
 
 | Método | Endpoint | Descripción | Roles Permitidos |
 | :--- | :--- | :--- | :--- |
